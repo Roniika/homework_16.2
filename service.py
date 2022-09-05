@@ -3,51 +3,11 @@ from config import db
 import json
 
 
-def insert_data_user(input_data):
-
-    for row in input_data:
-        db.session.add(
-            User(
-                id=row.get("id"),
-                first_name=row.get("first_name"),
-                last_name=row.get("last_name"),
-                age=row.get("age"),
-                email=row.get("email"),
-                role=row.get("role"),
-                phone=row.get("phone"),
-            )
-        )
+def insert_data(data, model):
+    new_item = model(**data)
+    db.session.add(new_item)
     db.session.commit()
-
-
-def insert_data_order(input_data):
-
-    for row in input_data:
-        db.session.add(
-            Order(
-                id=row.get("id"),
-                name=row.get("name"),
-                description=row.get("description"),
-                start_date=row.get("start_date"),
-                end_date=row.get("end_date"),
-                adress=row.get("adress"),
-                price=row.get("price"),
-            )
-        )
-    db.session.commit()
-
-
-def insert_data_offer(input_data):
-
-    for row in input_data:
-        db.session.add(
-            Offer(
-                id=row.get("id"),
-                order_id=row.get("order_id"),
-                executor_id=row.get("executor_id"),
-            )
-        )
-    db.session.commit()
+    return new_item
 
 
 def get_all_users():
@@ -95,24 +55,14 @@ def get_all_offers_by_id(offer_id):
         return {}
 
 
-def update_universal(model, user_id, values):
-    try:
-        data = db.session.query(model).get(user_id)
-        data.id = values.get("id")
-        data.first_name = values.get("first_name")
-        data.last_name = values.get("last_name")
-        data.age = values.get("age")
-        data.email = values.get("email")
-        data.role = values.get("role")
-        data.phone = values.get("phone")
+def update_universal(model, pk, values):
+    item = db.session.query(model).get(pk)
+    if not item:
+        raise IndexError("Элемент с таким id не найден")
+    for attribute, new_value in values.items():
+        setattr(item, attribute, new_value)
 
-        db.session.commit()
-
-        result = data[0].to_dict()
-        result.update(data[1].to_dict())
-        return result
-    except Exception:
-        return {}
+    return item
 
 
 def delete_universal(model, user_id):
@@ -123,16 +73,26 @@ def delete_universal(model, user_id):
     except Exception:
         return {}
 
+
 def init_db():
     db.drop_all()
     db.create_all()
 
     with open("data/user.json") as file:
-        insert_data_user(json.load(file))
+        data = json.load(file)
+    users_to_append = [User(**kwarg) for kwarg in data]
+    db.session.add_all(users_to_append)
 
     with open("data/order.json") as file:
-        insert_data_order(json.load(file))
+        data = json.load(file)
+    orders_to_append = [Order(**kwarg) for kwarg in data]
+    db.session.add_all(orders_to_append)
 
     with open("data/offer.json") as file:
-        insert_data_offer(json.load(file))
+        data = json.load(file)
+    offers_to_append = [Offer(**kwarg) for kwarg in data]
+    db.session.add_all(offers_to_append)
+
+    db.session.commit()
+
 
