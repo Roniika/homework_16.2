@@ -30,7 +30,7 @@ class Order(db.Model):
     description = db.Column(db.String(500))
     start_date = db.Column(db.Integer)
     end_date = db.Column(db.Integer)
-    adress = db.Column(db.String(200))
+    address = db.Column(db.String(200))
     price = db.Column(db.Integer)
     customer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     executor_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -42,7 +42,7 @@ class Order(db.Model):
             "description": self.description,
             "start_date": self.start_date,
             "end_date": self.end_date,
-            "adress": self.adress,
+            "address": self.address,
             "price": self.price,
             "customer_id": self.customer_id,
             "executor_id": self.executor_id,
